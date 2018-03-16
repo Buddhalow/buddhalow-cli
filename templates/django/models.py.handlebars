@@ -1,0 +1,18 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+from buddhalow.models import _random_id
+{{#list models }}
+
+class {{singularCapitalized}}:
+    id = models.CharField(max_length=255, primary_key=true, default=_random_id)
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    {{#list fields}}
+    {{id}} = {{field.djangoType}}
+    {{/list}}
+
+    def __str__(self):
+        return self.name
+
+{{/list}}

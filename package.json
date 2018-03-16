@@ -1,0 +1,27 @@
+{
+  "name": "buddhalow-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+  "bin": {
+    "create-buddhalow-app": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Buddhalow/buddhalow-cli.git"
+  },
+  "author": "Alexander Forselius <alexander.forselius@buddhalow.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Buddhalow/buddhalow-cli/issues"
+  },
+  "homepage": "https://github.com/Buddhalow/buddhalow-cli#readme",
+  "dependencies": {
+    "handlebars": "^4.0.11",
+    "inquirer": "^5.1.0"
+  }
+}

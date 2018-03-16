@@ -1,0 +1,16 @@
+{
+  "brand": {
+    "primary": {
+      "light": "#b1c76b",
+      "darker": "#566a38"
+    },
+    "secondary": {
+      "light": "#e5d9c5",
+      "darker": "c29c80"
+    },
+    "error": {
+      "light": "#EF9A9A",
+      "dark": "#B71C1C"
+    }
+  }
+}

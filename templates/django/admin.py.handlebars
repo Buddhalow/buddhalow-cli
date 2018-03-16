@@ -1,0 +1,9 @@
+from django.contrib import admin
+
+from {{id}}.models import {{#list models}}{{singularCapitalized}},{{/list}}
+
+{{#list models}}
+@admin.register({{singularCapitalized}})
+class {{singularCapitalized}}Admin:
+    pass
+{{/list}}

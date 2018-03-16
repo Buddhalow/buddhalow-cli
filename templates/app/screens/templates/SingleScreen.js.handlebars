@@ -1,0 +1,150 @@
+import React from 'react';
+import {
+  Image,
+  Platform,
+  InputText,
+  ScrollView,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator
+} from 'react-native';
+import { WebBrowser } from 'expo';
+import i18n from '../i18n'
+
+import { MonoText } from '../components/StyledText';
+
+import Item from '../components/Item'
+import Post from '../components/Post'
+import PrimaryButton from '../components/Primarybutton'
+import Background from '../components/Background'
+
+import gql from 'graphql-tag'
+import { graphql } from 'react-apollo'
+
+import styles from '../styles'
+import { TextInput } from 'react-native-gesture-handler';
+
+let getQuery = gql`
+    query {{model.plural}}($id: String!) {
+        {{model.plural}}(id: $id) {
+            id
+            {{#list model.fields}},
+            {{id}}
+            {{/list}}
+        }
+    }
+`
+
+let postQuery = gql`
+    mutation create{{model.singularCapitalized}}(
+        $id: String!{{#list model.fields}}, 
+        ${{id}}: String!
+        {{/list}}) {
+            create{{model.singularCapitalized}}(
+                id: $id{{#list model.fields}}, 
+                {{id}}: ${{id}}
+            {{/list}}) {
+                id
+                {{#list model.fields}},
+                {{id}}
+                {{/list}}
+            }
+        }
+    }
+`
+
+let updateQuery = gql`
+    mutation update{{model.singularCapitalized}}(
+        $id: String!{{#list model.fields}}, 
+        ${{id}}: String!
+        {{/list}}) {
+            update{{model.singularCapitalized}}(
+                id: $id{{#list model.fields}}, 
+                {{id}}: ${{id}}
+            {{/list}}) {
+                id
+                {{#list model.fields}},
+                {{id}}
+                {{/list}}
+            }
+        }
+    }
+`
+
+let deleteQuery = gql`
+    mutation delete{{model.singularCapitalized}}(
+        $id: String!) {
+            delete{{model.singularCapitalized}}(id: $id) {
+                status
+            }
+        }
+    }
+`
+
+class {{model.singularCapitalized}} extends React.Component {
+  static navigationOptions = {
+     title: i18n.t('{{model.id}}')
+  };
+
+  _onSavePress(e) {
+      this.props.mutate({
+          query: updateQuery,
+          variables: {
+              ...this.state.{{model.id}}
+          }
+      })
+  }
+
+  state = {
+      {{model.id}}: {
+          a:''
+          {{#list model.fields}}
+          ,{{id}}: ''
+          {{/list}}
+      }
+  }
+
+  render() {
+    if (!this.props.data || this.props.data.error) {
+        console.log(this.props.data)
+        return (
+            <View style={{alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+                <Text>An error occured. Please try again soon</Text>
+            </View>
+          )
+    }
+    
+    if (this.props.data.loading) {
+          return (
+            <View style={{alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+                <ActivityIndicator />
+            </View>
+          )
+    }
+   
+    return (
+      <View style={[styles.container, {height: '100%'}]}>
+         {{#list model.fields}}
+         <TextInput
+            value={({{id}}) => this.setState({ {{model}}: { {{id}} } })} />
+        {{/list}}
+        <PrimaryButton onPress={this._onSavePress}>{i18n.t('save')}</PrimaryButton>
+      </View>
+    );
+  }
+}
+
+export default graphql(getQuery, {
+    options: (ownProps) => ({
+        variables: {
+            id: ownProps.navigation.state.params.id
+        }
+    }),
+    props: ({ data, {{model.id}} }) => ({
+        data, {{model.id}}
+    }),
+    name: 'get'   
+})

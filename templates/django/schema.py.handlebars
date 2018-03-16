@@ -1,0 +1,64 @@
+from django.utils import timezone
+from graphene_django import DjangoObjectType
+import graphene
+
+from buddhalow.models import Status
+from django_exponent.models import PushNotification
+from django_exponent.schema import PushNotificationObjectType
+
+from {{id}}.models import {{#list models}} {{model.singularCapitalized}},{{/list}} _random_id
+
+{{#list models }}
+class {{model.singularCapitalized}}ObjectType(DjangoObjectType):
+    class Meta:
+        model = {{model.singularCapitalized}}
+{{/list}}
+
+class Create{{model.singularCapitalized}}(graphene.Mutation):
+    class Arguments:
+        {{#list fields}}
+        {{id}} = graphene.{{type}}()
+        {{/list}}
+
+    status = graphene.Int()
+    {{id}} = graphene.Field(lambda: {{model.singularCapitalized}}ObjectType)
+
+    def mutate(
+        self,
+        info{{#list fields}},
+        {{id}}=None{{/list}
+    ):
+        {{id}} = {{singularCapitalized}}(
+            {{#list fields}},
+            {{id}}=None{{/list}
+        )
+        {{id]}}.save()
+        ok = True
+        return Create{{singularCapitalized}}({{id}}={{id}}, status=201)
+
+class Mutations(graphene.ObjectType):
+    {{#list models}}create_{{id}} = Create{{singularCapitalized}}.Field()
+
+
+class Query(graphene.ObjectType):
+    {{id}}s = graphene.List(
+        {{singularCapitalized}}ObjectType
+    )
+    {{id}} = graphene.Field(
+        {{singularCapitalized}}ObjectType,
+        id=graphene.String()
+    )
+
+    def resolve_{{id}}(self, info, id):
+        return {{singularCapitalized}}.objects.get(
+            user=info.context.user,
+            id=id
+        )
+
+    def resolve_{{id}}s(self, info):
+        return {{singularCapitalized}}.objects.filter(
+            user=info.context.user
+        )
+
+
+schema = graphene.Schema(query=Query, mutation=Mutations)

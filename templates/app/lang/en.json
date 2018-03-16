@@ -1,0 +1,17 @@
+{
+    "login": "Log in",
+    "username": "User Name",
+    "password": "Password",
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "assignments": "Assignments",
+    "account": "Account",
+    "forgot-password": "Forgot password",
+    "notifications": "Notifications",
+    "logout": "Logout",
+    "notification": "Notification",
+    "infection": "Infection",
+    "infections": "Infections",
+    "treatments": "Treatments",
+    "treatment": "Treatment"
+}
