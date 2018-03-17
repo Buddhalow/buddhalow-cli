@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Buddhalow/buddhalow-cli#readme",
   "dependencies": {
+    "commander": "^2.15.0",
     "handlebars": "^4.0.11",
     "inquirer": "^5.1.0"
   }

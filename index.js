@@ -1,65 +1,42 @@
 #!/usr/bin/env node
 
+const CURR_DIR = process.cwd();
 const inquirer = require('inquirer');
 const fs = require('fs');
+const handlebars = require('handlebars')
 
-const CHOICES = fs.readdirSync(`${__dirname}/templates`);
+var program = require('commander');
 
-const QUESTIONS = [
-  {
-    name: 'project-choice',
-    type: 'list',
-    message: 'What project template would you like to generate?',
-    choices: CHOICES
-  },
-  {
-    name: 'project-name',
-    type: 'input',
-    message: 'Project name:',
-    validate: function (input) {
-      if (/^([A-Za-z\-\_\d])+$/.test(input)) return true;
-      else return 'Project name may only include letters, numbers, underscores and hashes.';
+program
+  .version('0.2.8')
+  .command('init [projectName] [schemaFilePath] [template]')
+  .action(function (projectName, schemaFilePath, templateName) {
+    console.log("Creating app")
+    if (!projectName) {
+      console.error('Project dir not specified')
+      return
     }
-  },
-  {
-    name: 'project-name',
-    type: 'input',
-    message: 'Project name:',
-    validate: function (input) {
-      if (/^([A-Za-z\-\_\d])+$/.test(input)) return true;
-      else return 'Project name may only include letters, numbers, underscores and hashes.';
+    if (!schemaFilePath) {
+      console.log('Schema file path not specified')
     }
-  },
-  {
-    name: 'data-model',
-    type: 'input',
-    message: 'Enter data model'
-  }
-];
-
-
-const CURR_DIR = process.cwd();
-
-inquirer.prompt(QUESTIONS)
-  .then(answers => {
-    const projectChoice = answers['project-choice'];
-    const projectName = answers['project-name'];
-    const templatePath = `${__dirname}/templates/${projectChoice}`;
-    const dataModel = answers['data-model']
+    if (!templateName) {
+      console.error('Template not defined')
+    }
+    const templatePath = `${__dirname}/templates/${templateName}`;
+    
     fs.mkdirSync(`${CURR_DIR}/${projectName}`);
-
-    createDirectoryContents(templatePath, projectName, dataModel);
+    
+    createDirectoryContents(templatePath, projectName, schemaFilePath);
   });
 
-function createDirectoryContents (templatePath, newProjectPath, dataModel) {
-  const filesToCreate = fs.readdirSync(templatePath);
+program.parse(process.argv);
 
-  let models =dataModel.split(/\;/)
-  models.forEach(model => {
-      let fields = model.split(/ /)
-      
-      let query = ''
-  })
+
+function createDirectoryContents (templatePath, newProjectPath, schemaFileName) {
+  const filesToCreate = fs.readdirSync(templatePath);
+    
+  let schema = fs.readFileSync(schemaFileName, 'utf8')
+
   filesToCreate.forEach(file => {
     const origFilePath = `${templatePath}/${file}`;
     
@@ -67,10 +44,21 @@ function createDirectoryContents (templatePath, newProjectPath, dataModel) {
     const stats = fs.statSync(origFilePath);
 
     if (stats.isFile()) {
-      const contents = fs.readFileSync(origFilePath, 'utf8');
+      let contents = fs.readFileSync(origFilePath, 'utf8');
+
+      const handleBarsExtension = '.handlebars'
+      let newFile = file
+      // If the file has a handlebars extension, generate a common file instead
+      if (origFilePath.indexOf(handlebars) == origFilePath.length - handleBarsExtension.length) {
+       newFile = origFilePath.substr(0, origFilePath.length - handleBarsExtension.length)
+       let template = handlebars.compile(contents)
+       contents = template(schema)
+      }
       
-      const writePath = `${CURR_DIR}/${newProjectPath}/${file}`;
+      const writePath = `${CURR_DIR}/${newProjectPath}/${newFile}`;
       fs.writeFileSync(writePath, contents, 'utf8');
+    } else {
+      createDirectoryContents(origFilePath, writePath, schema)
     }
   });
 

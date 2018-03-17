@@ -1,0 +1,231 @@
+import React from 'react';
+import {
+  Image,
+  Platform,
+  InputText,
+  ScrollView,
+  Picker,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator
+} from 'react-native';
+import { WebBrowser } from 'expo';
+import i18n from '../i18n'
+import { TabNavigator } from 'react-navigation';
+import { MonoText } from '../components/StyledText';
+
+import Item from '../components/Item'
+import Post from '../components/Post'
+import PrimaryButton from '../components/Primarybutton'
+import Background from '../components/Background'
+
+import gql from 'graphql-tag'
+import { graphql } from 'react-apollo'
+
+import styles from '../styles'
+import { TextInput } from 'react-native-gesture-handler';
+
+let getQuery = gql`
+    query {{singular}}($id: String!) {
+        {{singular}}(id: $id) {
+            id
+            {{#list fields}},
+            {{id}} {{#if model}}{
+                id,
+                name
+            }{{/if}}
+            {{/list}}
+            {{#list relations}},
+            {{id}}Set {
+               id,
+               name
+            }
+            {{/list}}
+        }
+    }
+`
+
+let postQuery = gql`
+    mutation create{{name}}(
+        $id: String!{{#list fields}}, 
+        ${{id}}: {{type}}! 
+        {{/list}} {{#list relations}},
+                ${{id}}Id: String!{{/list}}) {
+            create{{name}}(
+                id: $id{{#list fields}}, 
+                {{id}}: ${{id}} {{#list relations}},
+                ${{id}}Id: {{id}}{{/list}}
+            ) {
+                id
+                {{#list fields}},
+                {{id}}
+                {{/list}}
+            }
+        }
+    }
+`
+
+let updateQuery = gql`
+    mutation update{{name}}(
+        $id: String!{{#list fields}}, 
+        ${{id}}: String!
+        {{/list}} {{#list relations}},
+                ${{id}}Id: String!{{/list}}) {
+            update{{name}}(
+                id: $id{{#list fields}}, 
+                {{id}}: ${{id}}
+            {{/list}}) {
+                id
+                {{#list fields}},
+                {{id}}
+                {{/list}}
+            }
+        }
+    }
+`
+
+let deleteQuery = gql`
+    mutation delete{{name}}(
+        $id: String!) {
+            delete{{name}}(id: $id) {
+                status
+            }
+        }
+    }
+`
+
+
+{{#list relations}}
+class {{name}}Tab extends React.Component {
+    constructor(props) {
+        super(props)
+    }
+    render() {
+        return (
+            <View>
+                <FlatList
+                style={{height: '100%'}}
+                keyExtractor={(item, i) => item.id}
+                data={this.props.data.{{plural}}}
+                renderItem={({item, i}) => (
+                <Item
+                    id={item.id}
+                    onPress={(id) => {
+                        this.props.navigation.navigate('{{name}}', {id: id})
+                        console.log(id)
+                    }}
+                    name={item.name} 
+                    description={item.description} 
+                    time={item.time} />
+            )} /> 
+            </View>
+        )
+    }
+}
+{{/list}}
+
+class Overview extends React.Component {
+  static navigationOptions = {
+     title: i18n.t('{{plural}}')
+  };
+  constructor(props) {
+      super(props)
+      this._onSavePress = this._onSavePress.bind(this)
+  }
+    componentWillReceiveProps(newProps){
+        if(!newProps.query.loading){
+            this.setState({data: newProps.data})
+        }
+    }
+  _onSavePress(e) {
+      this.props.mutate({
+          query: updateQuery,
+          variables: {
+              ...this.state.data.{{singular}}
+          }
+      })
+  }
+
+  state = {
+      data: {
+          {{singular}}: {
+            a:''{{#list fields}},{{id}}: ''
+            {{/list}}
+        }
+      }
+  }
+
+  render() {
+    if (!this.props.data || this.props.data.error) {
+        console.log(this.props.data)
+        return (
+            <View style={{alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+                <Text>An error occured. Please try again soon</Text>
+            </View>
+          )
+    }
+    
+    if (this.props.data.loading) {
+          return (
+            <View style={{alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+                <ActivityIndicator />
+            </View>
+          )
+    }
+   
+    return (
+      <View style={[styles.container, {height: '100%'}]}>
+        {{#list fields}}
+        
+        <TextInput
+            value={({{id}}) => this.setState({ {{singular}}: { {{id}} } })} />
+        {{/list}}
+        {{#list relations}}
+        <Picker 
+            selectedValue={this.state.{{singular}}.{{id}}}
+            onValueChange={({itemValue, itemIndex}) => this.setState({ {{singular}}: {{{id}}: itemValue})}
+            {this.props.data.{{plural}}}.map((o, i) => {
+                return <Picker.Item label={o.name} value={o.value} />
+            })}
+        </Picker>
+        <PrimaryButton onPress={this._onSavePress}>{i18n.t('save')}</PrimaryButton>
+      </View>
+    );
+  }
+}
+
+let OverviewScreen = compose(
+    
+    graphql(getQuery, {
+        options: (ownProps) => ({
+            variables: {
+                id: ownProps.navigation.state.params.id
+            }
+        }),
+        props: ({ data: { loading, {{singular}} } }) => ({
+            data, {{singular}}
+        }),
+        name: 'get'
+    }){{#list relations}},
+    graphql({{id}})Query, {
+        props: ({ data: { loading, {{plural}} } }) => ({
+            loading, {{plural}}
+        }),
+        name: 'get{{plural}}'
+    }){{/list}}
+)(Overview)
+
+
+export default TabNavigator(
+    {
+        Overview: { 
+            screen: OverviewScreen
+        }{{#list relations}},
+        {{name}}: {
+            screen: {{name}}Tab
+        }
+    }
+)
