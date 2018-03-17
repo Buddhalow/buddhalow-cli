@@ -29,77 +29,75 @@ import styles from '../styles'
 import { TextInput } from 'react-native-gesture-handler';
 
 let getQuery = gql`
-    query {{singular}}($id: String!) {
-        {{singular}}(id: $id) {
+    query <%=singular%>($id: String!) {
+        <%=singular%>(id: $id) {
             id
-            {{#list fields}},
-            {{id}} {{#if model}}{
+            <% for (field of fields) {%>,
+            <%=id%> <% if (model} {%> {
                 id,
                 name
-            }{{/if}}
-            {{/list}}
-            {{#list relations}},
-            {{id}}Set {
+            }<%= } %>
+            <%= } %>
+            <% for (relation of relations) {%>,
+            <%=relation.id%>Set {
                id,
                name
             }
-            {{/list}}
+            <%= } %>
         }
     }
 `
 
 let postQuery = gql`
-    mutation create{{name}}(
-        $id: String!{{#list fields}}, 
-        ${{id}}: {{type}}! 
-        {{/list}} {{#list relations}},
-                ${{id}}Id: String!{{/list}}) {
-            create{{name}}(
-                id: $id{{#list fields}}, 
-                {{id}}: ${{id}} {{#list relations}},
-                ${{id}}Id: {{id}}{{/list}}
+    mutation create<%=name%>(
+        $id: String!<% for (field of fields) {%>, 
+        $<%=id%>=: <%=type%>! 
+       <%= } %> <% for (relation of relations) {%>,
+                $<%=relation.id%>Id: String!<% } %>) {
+            create<%=name%>(
+                id: $id<%for (let field of fields) {%>, 
+                <%=singular%>: $<%=singular%> <% } %>,
+                $<%=id%>Id: <%=id%><% } %>
             ) {
                 id
-                {{#list fields}},
-                {{id}}
-                {{/list}}
+                <% for (let field of field) {%>,
+                <%=field.id%>
+                <% } %>
             }
         }
     }
 `
 
 let updateQuery = gql`
-    mutation update{{name}}(
-        $id: String!{{#list fields}}, 
-        ${{id}}: String!
-        {{/list}} {{#list relations}},
-                ${{id}}Id: String!{{/list}}) {
-            update{{name}}(
-                id: $id{{#list fields}}, 
-                {{id}}: ${{id}}
-            {{/list}}) {
-                id
-                {{#list fields}},
-                {{id}}
-                {{/list}}
+    mutation update<%=name%>(
+        $id: String!<% for (let field of fields) %>, 
+        $<%=id%>: String!
+        <% } %> <% for (let relation of relations) { %>,
+                $<%=relation.id%>Id: String!<% } %>) {
+            update<%=name%>(
+                id: $id<% for (let field of fields) {%>, 
+                <%=field.id%>: $<%=id%>
+            <% } %>) {
+                id<% for (let field of fields) {%>,
+                <%=id%>
+                <% } %>
             }
         }
     }
 `
 
 let deleteQuery = gql`
-    mutation delete{{name}}(
+    mutation delete<%=name%>(
         $id: String!) {
-            delete{{name}}(id: $id) {
+            delete<%=name%>(id: $id) {
                 status
             }
         }
     }
 `
 
-
-{{#list relations}}
-class {{name}}Tab extends React.Component {
+<% for (let relation of relations) {%>
+class <%=relation.name%>Tab extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -109,12 +107,12 @@ class {{name}}Tab extends React.Component {
                 <FlatList
                 style={{height: '100%'}}
                 keyExtractor={(item, i) => item.id}
-                data={this.props.data.{{plural}}}
+                data={this.props.data.<%=relation.plural%>}
                 renderItem={({item, i}) => (
                 <Item
                     id={item.id}
                     onPress={(id) => {
-                        this.props.navigation.navigate('{{name}}', {id: id})
+                        this.props.navigation.navigate('<%=relation.name%>', {id: id})
                         console.log(id)
                     }}
                     name={item.name} 
@@ -125,11 +123,11 @@ class {{name}}Tab extends React.Component {
         )
     }
 }
-{{/list}}
+<% } %>
 
 class Overview extends React.Component {
   static navigationOptions = {
-     title: i18n.t('{{plural}}')
+     title: i18n.t('<%=plural%>')
   };
   constructor(props) {
       super(props)
@@ -144,7 +142,7 @@ class Overview extends React.Component {
       this.props.mutate({
           query: updateQuery,
           variables: {
-              ...this.state.data.{{singular}}
+              ...this.state.data.<%=singular%>
           }
       })
   }
@@ -152,8 +150,8 @@ class Overview extends React.Component {
   state = {
       data: {
           {{singular}}: {
-            a:''{{#list fields}},{{id}}: ''
-            {{/list}}
+            a:''<% for (let field of fields) {%>,<%=field.id}%>: ''
+            <% } %>
         }
       }
   }
@@ -178,19 +176,20 @@ class Overview extends React.Component {
    
     return (
       <View style={[styles.container, {height: '100%'}]}>
-        {{#list fields}}
+        <% for (let field of fields) { %>
         
         <TextInput
-            value={({{id}}) => this.setState({ {{singular}}: { {{id}} } })} />
-        {{/list}}
-        {{#list relations}}
+            value={({{id}}) => this.setState({ <%=singular%>: { <%=id%> } })} />
+        <% } %>
+        <% for (let relation of relations) {%>
         <Picker 
-            selectedValue={this.state.{{singular}}.{{id}}}
-            onValueChange={({itemValue, itemIndex}) => this.setState({ {{singular}}: {{{id}}: itemValue})}
-            {this.props.data.{{plural}}}.map((o, i) => {
+            selectedValue={this.state.<%=relation.singular%>.<%=relation.id%></Picker>}
+            onValueChange={({itemValue, itemIndex}) => this.setState({ <%=relation.singular%>: <%=relation.id%>: itemValue})}
+            {this.props.data.<%=relation.plural%>.map((o, i) => {
                 return <Picker.Item label={o.name} value={o.value} />
             })}
         </Picker>
+        <% } %>
         <PrimaryButton onPress={this._onSavePress}>{i18n.t('save')}</PrimaryButton>
       </View>
     );
@@ -205,27 +204,26 @@ let OverviewScreen = compose(
                 id: ownProps.navigation.state.params.id
             }
         }),
-        props: ({ data: { loading, {{singular}} } }) => ({
-            data, {{singular}}
+        props: ({ data: { loading, <%=singular%> } }) => ({
+            data, <%=singular%>
         }),
         name: 'get'
     }){{#list relations}},
     graphql({{id}})Query, {
-        props: ({ data: { loading, {{plural}} } }) => ({
-            loading, {{plural}}
+        props: ({ data: { loading, <%=plural%> } }) => ({
+            loading, <%=plural%>
         }),
-        name: 'get{{plural}}'
+        name: 'get<%=plural%>'
     }){{/list}}
 )(Overview)
-
 
 export default TabNavigator(
     {
         Overview: { 
             screen: OverviewScreen
-        }{{#list relations}},
-        {{name}}: {
-            screen: {{name}}Tab
-        }
+        }<% for (let relation of relations) {%>,
+        <%=relation.name%>: {
+            screen: <%=relation.name%>Tab
+        }<% } %>
     }
 )

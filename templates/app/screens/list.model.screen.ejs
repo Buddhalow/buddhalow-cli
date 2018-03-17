@@ -26,23 +26,23 @@ import styles from '../styles'
 
 let query = gql`
     {
-        {{plural}} {
-            {{#list fields}}
-            {{id}}
-            {{/list}}
-            {{#list relations}}
-            {{id}}Set {
+        <%=plural%> {
+            <% for (field of fields) {>
+            <%=field.id%>
+            <% } %>
+            <% for (relation of relations) { %>
+            <%=id%>Set {
                 id,
                 name
             }
-            {{/list}}
+            <%= } %>
         }
     }
 `
 
-class {{singularCapitalized}} extends React.Component {
+class <%=singularCapitalized%> extends React.Component {
   static navigationOptions = {
-     title: i18n.t('{{plural}}')
+     title: i18n.t('<%=plura%>')
   };
 
   render() {
@@ -66,12 +66,12 @@ class {{singularCapitalized}} extends React.Component {
             <FlatList
                 style={{height: '100%'}}
                 keyExtractor={(item, i) => item.id}
-                data={this.props.data.{{plural}}}
+                data={this.props.data.<%=plural%>}
                 renderItem={({item, i}) => (
                 <Item
                     id={item.id}
                     onPress={(id) => {
-                        this.props.navigation.navigate('{{singularCapitalized}}', {id: id})
+                        this.props.navigation.navigate('<%=name%>', {id: id})
                         console.log(id)
                     }}
                     name={item.name} 
@@ -83,4 +83,4 @@ class {{singularCapitalized}} extends React.Component {
   }
 }
 
-export default graphql(query)({{singularCapitalized}})
+export default graphql(query)(<%=name%>)
