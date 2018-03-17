@@ -1,5 +1,6 @@
 #Buddhalow-CLI
 
+Work in Progress 
 Buddhalow project generation.
 
 Bootstrap back and front-end for buddhalow projects by specifying model. Based on code from @northcoders
@@ -10,3 +11,4 @@ Usage:
 ````sh
     > buddhalow init 
 ````
+
