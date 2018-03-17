@@ -53,18 +53,18 @@ function createDirectoryContents (templatePath, newProjectPath, schema) {
       const handleBarsExtension = '.ejs'
       let newFile = file
       // If the file has a handlebars extension, generate a common file instead
-      if (origFilePath.indexOf(handleBarsExtension) == origFilePath.length - handleBarsExtension.length) {
-       newFile = origFilePath.substr(0, origFilePath.length - handleBarsExtension.length)
+      if (origFilePath.indexOf('.ejs') == origFilePath.length - 4) {
+       newFile = origFilePath.substr(0, origFilePath.length - 4)
        if (newFile.indexOf('.model') > 0) {
         for (let model of schema.models) {
           
           newFile = newFile.replace('.model', '.' + model.singular) 
         
-          let contents = ejs.render(contents, model)
+          let contents2 = ejs.render(contents, model)
 
           const writePath = `${CURR_DIR}/${newProjectPath}/${newFile}`;
         
-          fse.outputFileSync(writePath, contents);
+          fse.outputFileSync(writePath, contents2);
 
         }
         return

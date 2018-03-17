@@ -27,10 +27,10 @@ import styles from '../styles'
 let query = gql`
     {
         <%=plural%> {
-            <% for (field of fields) {>
+            <% for (let field of fields) { %>
             <%=field.id%>
             <% } %>
-            <% for (relation of relations) { %>
+            <% for (let relation of relations) { %>
             <%=id%>Set {
                 id,
                 name
@@ -40,9 +40,9 @@ let query = gql`
     }
 `
 
-class <%=singularCapitalized%> extends React.Component {
+class <%=name%> extends React.Component {
   static navigationOptions = {
-     title: i18n.t('<%=plura%>')
+     title: i18n.t('<%=plural%>')
   };
 
   render() {
@@ -62,7 +62,7 @@ class <%=singularCapitalized%> extends React.Component {
     }
     
     return (
-        <View style={[styles.container, {height: '100%'}]}>
+        <View>
             <FlatList
                 style={{height: '100%'}}
                 keyExtractor={(item, i) => item.id}
